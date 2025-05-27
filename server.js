@@ -95,53 +95,19 @@ app.post('/addSchool', async (req, res) => {
     });
   }
 });
-
-// List Schools API with proximity sorting
+// Simply lists ALL schools (no proximity sorting)
 app.get('/listSchools', async (req, res) => {
   try {
-    const { latitude, longitude } = req.query;
-    
-    // Validate coordinates
-    if (!latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        error: 'Both latitude and longitude are required as query parameters'
-      });
-    }
-
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Latitude and longitude must be valid numbers'
-      });
-    }
-
-    // Get all schools and calculate distances
-    const schools = await School.find();
-    const processedSchools = schools.map(school => {
-      const distance = Math.sqrt(
-        Math.pow(school.latitude - lat, 2) +
-        Math.pow(school.longitude - lng, 2)
-      );
-      return {
-        ...school.toObject(),
-        distance: parseFloat(distance.toFixed(2)) // Round to 2 decimals
-      };
-    }).sort((a, b) => a.distance - b.distance);
-
+    const schools = await School.find({});
     res.json({
       success: true,
-      count: processedSchools.length,
-      data: processedSchools
+      count: schools.length,
+      data: schools // Return raw list without distance calculations
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(500).json({ 
       success: false,
-      error: err.message,
-      message: 'Server error while fetching schools'
+      error: err.message 
     });
   }
 });
